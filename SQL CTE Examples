@@ -1,0 +1,50 @@
+# To find top country category combinations in terms of revenue generated
+
+WITH cust_cat_payment AS
+(
+WITH cust_cat AS
+(
+SELECT A.customer_id,E.name
+FROM customer A 
+JOIN rental B ON B.customer_id=A.customer_id
+JOIN inventory C ON C.inventory_id=B.inventory_id
+JOIN film_category D ON D.film_id=C.film_id
+JOIN category E ON D.category_id=E.category_id
+GROUP BY A.customer_id,E.name
+)
+
+SELECT A1.name AS cat_name, A1.customer_id,F.amount -- can change count with indivdual numbers
+FROM payment F
+JOIN cust_cat A1 ON A1.customer_id=F.customer_id
+GROUP BY A1.customer_id,cat_name,F.amount
+ORDER BY F.amount DESC
+)
+SELECT A2.cat_name,I.country,COUNT(DISTINCT A2.customer_id) AS customers,sum(A2.amount) AS revenue
+FROM cust_cat_payment A2
+JOIN customer A ON A2.customer_id=A.customer_id
+JOIN address G ON A.address_id=G.address_id
+JOIN city H ON G.city_id=H.city_id
+JOIN country I ON H.country_id=I.country_id
+GROUP BY A2.cat_name,I.country
+ORDER BY revenue DESC,customers DESC
+LIMIT 200
+
+# To find top 20 categries in terms of customers and revenue
+
+WITH cust_cat AS
+(
+SELECT A.customer_id,E.name
+FROM customer A 
+JOIN rental B ON B.customer_id=A.customer_id
+JOIN inventory C ON C.inventory_id=B.inventory_id
+JOIN film_category D ON D.film_id=C.film_id
+JOIN category E ON D.category_id=E.category_id
+GROUP BY A.customer_id,E.name
+)
+
+SELECT A1.name AS cat_name,COUNT(DISTINCT A1.customer_id) AS customers,sum(F.amount) AS revenue -- can change count with indivdual numbers
+FROM payment F
+LEFT JOIN cust_cat A1 ON A1.customer_id=F.customer_id
+GROUP BY cat_name
+ORDER BY customers DESC,revenue DESC
+LIMIT 20
